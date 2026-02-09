@@ -21,6 +21,17 @@ Please Look at  COMMUNITY_DETECTION_REPORT.md
 
 # Task 3: Rule Mining
 
+  **Discover logical rules in the KG (inverse/symmetric relations, 2- and 3-relation Horn clauses, triangle-closure patterns) and score them by support/confidence with concrete examples.**
+
+- **Inverse rules (logic):** test ordered relation pairs rel1(X,Y) → rel2(Y,X). For each rel1 instance (X,Y) check if (Y,X) exists under rel2. Compute support = matches / total_triples and confidence = matches / count(rel1). Emit directional inverse rules above thresholds.
+- **Symmetric rules (logic):** same-relation check rel(X,Y) → rel(Y,X) using identical-relation matching.
+- **Horn clauses (2- and 3-relation):** enumerate small relation combinations, join on middle node(s) to form body patterns rel1(X,Y) ∧ rel2(Y,Z) (± rel3(Z,W)) and check whether head rel3(X,Z) (or rel4(X,W)) holds; compute body counts, matches, support, confidence. Sampling/limits applied for combinatorial explosion.
+- **Triangle closures:** patterns A←B→C and A→B←C checked via `pair_to_relations` to detect uni- and bi-directional closures and count corresponding relation triples.
+- **Thresholding & outputs:** rules are filtered by configurable confidence/support (defaults used: confidence >= ~0.7, support/min matches thresholds). Outputs: printed rule lists, CSV exports (e.g., `discovered_rules.csv` / per-rule csvs), detailed text report, and summary visuals.
+
+Please Look at  knowledge_graph_rule_discovery.ipynb
+
+
 # Task 4: Link Prediction
 # Knowledge Graph Completion using DistMult
 ---
