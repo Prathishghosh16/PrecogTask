@@ -19,19 +19,8 @@
 Please Look at  COMMUNITY_DETECTION_REPORT.md
 
 # Task 3: Rule Mining
-# Task 4: Link Pradiction
+# Task 4: Link Prediction
 # Knowledge Graph Completion using DistMult
-
-## Link Prediction on Family Relationship Knowledge Graph
-
----
-
-## 1. Introduction
-
-Real-world knowledge graphs are inherently incomplete. Not all relationships between entities are explicitly stated, yet many can be inferred from existing patterns. Link prediction, also known as Knowledge Graph Completion, aims to predict these missing edges by learning the underlying structure and patterns in the graph.
-
-In the context of family relationships, if we know that Alice is the parent of Bob, and Bob is the parent of Charlie, we should be able to infer that Alice is the grandparent of Charlie, even if this relationship is not explicitly stated in the knowledge graph.
-
 ---
 ## 2. Methodology
 
@@ -54,8 +43,6 @@ where _h_, _r_, and _t_ are the embedding vectors for the head entity, relation,
 **Simplicity and Interpretability:** DistMult has one of the simplest scoring functions among KG embedding methods, making it easy to implement, debug, and understand.
 
 **Computational Efficiency:** The bilinear scoring function is computationally efficient, allowing for fast training and inference even on large knowledge graphs.
-
-**Strong Performance on Symmetric Relations:** Family relationships often include symmetric patterns (siblings, cousins), which DistMult handles naturally.
 
 **Parameter Efficiency:** With only 134,400 trainable parameters for our dataset, DistMult maintains a compact model size while achieving strong performance.
 ### 2.2 Model Architecture
@@ -85,15 +72,6 @@ L = max(0, γ - score(pos) + score(neg))
 
 This loss function encourages the model to score positive triples at least γ points higher than negative triples. The margin of 1.0 was selected as a standard choice that provides sufficient separation between positive and negative examples.
 
-#### 2.3.3 Optimization Configuration
-
-- **Optimizer:** Adam optimizer with learning rate 0.001
-- **Batch Size:** 128 triples per batch
-- **Training Epochs:** 100 epochs
-- **Negative Sample Ratio:** 10 negative samples per positive triple
-
-The Adam optimizer was chosen for its adaptive learning rate properties and robust performance. The learning rate of 0.001 provided stable convergence in our experiments.
-
 ### 2.4 Evaluation Methodology
 
 #### 2.4.1 Link Prediction Task
@@ -102,8 +80,9 @@ For each test triple _(h, r, t)_, we perform two prediction tasks:
 
 - **Tail Prediction:** Given _(h, r, ?)_, predict the correct tail entity _t_
 - **Head Prediction:** Given _(?, r, t)_, predict the correct head entity _h_
+- **Relation Prediction:** Given _(h, ?, t)_, predict the correct relation _r_
 
-For each prediction, we score all possible entities and rank them by their scores. The position of the true entity in this ranking determines the prediction quality.
+For each prediction, we score all possible entities and relations and rank them by their scores. The position of the true entity in this ranking determines the prediction quality.
 
 #### 2.4.2 Filtered Ranking
 
@@ -127,44 +106,35 @@ MRR = (1/N) Σ (1/rank_i)
 
 ### 3.1 Performance Metrics
 
-The trained DistMult model achieved the following performance on the test set:
-
-|Metric|Score|
-|---|---|
-|**MRR**|**0.6677**|
-|Hits@1|0.4941|
-|Hits@3|0.8161|
-|Hits@10|0.9508|
-|Mean Rank|3.33|
-|Median Rank|2.0|
+|**Metric**|**Entity Prediction (H+T)**|**Head Prediction**|**Tail Prediction**|**Relation Prediction**|
+|---|---|---|---|---|
+|**MRR**|0.6677|0.7151|0.6204|0.4211|
+|**Hits@1**|0.4941|0.5525|0.4356|0.0051|
+|**Hits@3**|0.8161|0.8678|0.7644|0.8051|
+|**Hits@10**|0.9508|0.9729|0.9288|0.9983|
+|**Mean Rank**|3.3280|2.4034|4.2525|2.8186|
+|**Median Rank**|2.0000|1.0000|2.0000|2.0000|
 
 ### 3.2 Performance Analysis
 
-**Exceptional Ranking Performance:** The median rank of 2.0 indicates that for most predictions, the correct entity appears in the top 2 positions. The mean rank of 3.33 is only slightly higher, suggesting that the distribution of ranks is concentrated toward the top positions with minimal outliers.
+**Exceptional Ranking Performance:** The median rank of 2.0 indicates that for most predictions, the correct entity appears in the top 2 positions. The mean rank of 3.33  and 2.82 is only slightly higher, suggesting that the distribution of ranks is concentrated toward the top positions with minimal outliers.
 
-**Strong Top-1 Accuracy:** A Hits@1 score of 0.4941 means that in nearly 50% of predictions, the model identifies the correct entity as its top choice. This demonstrates strong discriminative power for family relationship patterns.
+All metrics are quite amazing except for hits@1 in case of relation prediction and there is a reason to it.
 
-**High Recall in Top-10:** The Hits@10 score of 0.9508 indicates that 95% of correct entities appear within the top 10 predictions. This is particularly valuable for applications where presenting a small set of candidates to users is acceptable.
+DistMult uses a bilinear diagonal scoring function:
 
-**Rapid Growth in Hits@K:** The progression from Hits@1 (49.4%) to Hits@3 (81.6%) to Hits@10 (95.1%) shows that most correct answers, if not ranked first, appear within the top few positions. This suggests the model has learned meaningful representations of relationship patterns.
+f(h,r,t)=h⊤diag(r)t
 
-**Effective MRR:** An MRR of 0.6677 is considered strong for knowledge graph completion tasks. This metric accounts for the exact position of correct predictions, and our score indicates that on average, correct entities are ranked very highly.
+Because this formula is mathematically commutative (meaning h⋅r⋅t is the same as t⋅r⋅h), the model cannot distinguish between the **head** and the **tail**.
 
+This means that if the model learns that A is mother of B it mathematically forced to believe that B is mother of A.
+
+However, it performs really well for Hits@3 and near perfectly for Hits@10.
 ### 3.3 Training Convergence
 
 The training loss decreased from initial values to a final loss of 0.0006 after 100 epochs, demonstrating effective learning. The extremely low final loss suggests the model successfully learned to distinguish between valid and invalid triples in the training set.
 
 The smooth convergence without oscillations indicates that our hyperparameters (learning rate, batch size, margin) were well-chosen for this dataset. The model achieved this performance with 134,400 parameters, demonstrating parameter efficiency relative to the dataset size.
-
-### 3.4 Key Insights
-
-**Pattern Learning:** The exceptionally low mean rank (3.33) and median rank (2.0) suggest that family relationships exhibit strong structural patterns that embedding methods can effectively capture.
-
-**Practical Utility:** The high Hits@3 score (81.6%) indicates that even when the model doesn't rank the correct answer first, it typically places it within the top three candidates, making the system highly practical for interactive applications.
-
-**Parameter Efficiency:** The model's ability to achieve such strong performance with only 134,400 parameters demonstrates the power of distributed representations. Each entity and relation is represented as a 100-dimensional vector, yet these compact representations encode sufficient information to distinguish between 28 different relationship types across 1,316 entities.
-
-**Model Suitability:** The strong results (MRR of 0.6677) validate the choice of DistMult, demonstrating that a simpler model can achieve excellent performance when well-suited to the data characteristics (symmetric relationships, moderate graph size).
 
 ---
 
@@ -190,27 +160,3 @@ The filtered ranking protocol is crucial for fair evaluation. Without filtering,
 
 Evaluating both head and tail prediction provides a comprehensive assessment of the model's bidirectional reasoning ability, which is essential for knowledge graph completion.
 
----
-
-## 5. Technical Specifications
-
-|Specification|Value|
-|---|---|
-|Model Type|DistMult|
-|Embedding Dimension|100|
-|Total Parameters|134,400|
-|Loss Function|Margin Ranking (γ=1.0)|
-|Optimizer|Adam (lr=0.001)|
-|Batch Size|128|
-|Training Epochs|100|
-|Negative Sampling Ratio|10:1|
-|Final Training Loss|0.0006|
-|**Test Performance**||
-|MRR|0.6677|
-|Hits@1|0.4941|
-|Hits@3|0.8161|
-|Hits@10|0.9508|
-|Mean Rank|3.33|
-|Median Rank|2.0|
-
----
