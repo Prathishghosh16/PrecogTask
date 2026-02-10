@@ -1,0 +1,21 @@
+# Data Analysis & Viz
+pandas
+seaborn
+matplotlib
+numpy
+scipy
+statsmodels
+
+# Math & Logic
+networkx
+sympy
+mpmath
+
+# Machine Learning
+torch
+tqdm
+pillow
+
+# Development Utilities
+ipykernel
+matplotlib-inline
