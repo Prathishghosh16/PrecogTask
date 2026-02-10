@@ -153,3 +153,13 @@ The metrics indicate a "textbook" community structure where the groups are nearl
 4. **High Internal Cohesion**: Communities exhibit high density (≈45%), clustering (≈79%), and compact diameter (≈3.5 hops).
 
 
+
+## Method to Rank how related two people are
+
+We can use a method where we take into consideration all the below mentioned metrics which can be used together in some linear combination to compute a relatedness score. 
+
+- **Relationship strength** (parent vs. distant cousin)
+- **Multiple connection paths** (connected in many ways)
+- **Common ancestors** (shared family history)
+- **Mutual relatives** (shared family network)
+- **Relationship diversity** (connected through different types of relations)
