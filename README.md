@@ -1,3 +1,7 @@
+
+To install all dependencies:
+ install Conda, then :
+`conda env create -f environment.yml`
 # Task 1: Dataset Exploration
 -  I first found out the number of edges in the graph along with the types of edges.
 - Next, I found out the number of components which make up the graph. I found out that there are 50 components each consisting of either 26 or 27 nodes. 

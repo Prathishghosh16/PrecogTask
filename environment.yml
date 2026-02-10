@@ -1,0 +1,22 @@
+channels:
+  - robostack-humble
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - ipykernel
+  - pandas
+  - seaborn
+  - tqdm
+  - numpy
+  - matplotlib
+  - scipy
+  - statsmodels
+  - networkx
+  - sympy
+  - pillow
+  - pip
+  - pip:
+    - torch
+    - matplotlib-inline
